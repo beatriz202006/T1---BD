@@ -13,17 +13,17 @@ struct dependencia {
     conjunto direita;   // RHS
 };
 
-/* Guarda as informacoes do esquema: atributos, dfs, quantidade de dfs armazenadas */
+/* Guarda as informações do esquema: atributos, dfs, quantidade de dfs armazenadas */
 struct esquema {
     conjunto atributos;
     struct dependencia *dfs;
     int quantidade;
 };
 
-/* Retorna a representacao de um atributo */
+/* Retorna a representação de um atributo */
 conjunto atributo(char letra);
 
-/* Verifica se todos os atributos de A tambem estao em B */
+/* Verifica se todos os atributos de A também estão em B */
 int subconjunto(conjunto A, conjunto B);
 
 /* Calcula o fecho de um conjunto de atributos */

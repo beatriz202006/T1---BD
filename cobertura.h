@@ -3,7 +3,7 @@
 
 #include "fds.h"
 
-/* Calcula a cobertura minima das dependencias funcionais */
+/* Calcula a cobertura mínima das dependências funcionais */
 int cobertura_minima(struct esquema *esquema);
 
 #endif

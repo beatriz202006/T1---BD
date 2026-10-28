@@ -8,6 +8,7 @@ static conjunto remover_atributo(conjunto conjunto_atual, char letra) {
     for (char atual = 'A'; atual <= 'Z'; atual++) {
         conjunto bit = atributo(atual);
 
+        // Se o atributo pertence ao conjunto original e não é o que vai ser removido, adiciona ao conjunto resultado
         if (subconjunto(bit, conjunto_atual) && atual != letra) {
             resultado = resultado | bit;
         }
@@ -21,14 +22,14 @@ int encontrar_chaves(const struct esquema *esquema, conjunto **chaves, int *qtde
     *chaves = NULL;
     *qtde = 0;
 
-    conjunto total = esquema->atributos;
+    conjunto total = esquema->atributos; // conjunto de todos os atributos do esquema
     conjunto atual = total;
 
-    // Percorre os subconjuntos possiveis
+    // Percorre todos os subconjuntos possíveis
     while (atual != 0) {
         conjunto resultado = fecho(atual, esquema);
 
-        // Verifica se o conjunto determina todos os atributos
+        // Verifica se o fecho contém todos os atributos do esquema
         if (subconjunto(total, resultado)) {
 
             // Verifica se o conjunto é uma chave mínima
@@ -37,18 +38,21 @@ int encontrar_chaves(const struct esquema *esquema, conjunto **chaves, int *qtde
                 conjunto atributo_atual = atributo(letra);
 
                 if (subconjunto(atributo_atual, atual)) {
-                    conjunto reduzido = remover_atributo(atual, letra);
-                    conjunto fecho_reduzido = fecho(reduzido, esquema);
-
+                    conjunto reduzido = remover_atributo(atual, letra);  // cria um conjunto sem o atributo testado
+                    conjunto fecho_reduzido = fecho(reduzido, esquema);  // calcula o fecho do conjunto reduzido
+                    
+                    // Se o conjunto reduzido ainda determina todos os atributos do esquema, o atributo testado é desnecessário
                     if (subconjunto(total, fecho_reduzido)) {
-                        min = 0;
+                        min = 0;  // conjunto original não é mínimo
                         break;
                     }
                 }
             }
 
-            //Guarda o conjunto se for uma chave candidata
+            //Se min for 1, o conjunto é uma chave candidata
             if (min) {
+
+                // Aumenta o espaço reservado para armazenar mais uma chave
                 conjunto *novo = realloc(*chaves, (*qtde + 1) * sizeof(conjunto));
 
                 if (!novo) {
@@ -64,7 +68,7 @@ int encontrar_chaves(const struct esquema *esquema, conjunto **chaves, int *qtde
             }
         }
 
-        // Passa para o proximo subconjunto do total 
+        // Passa para o próximo subconjunto de atributos
         atual = (atual - 1) & total;
     }
 

@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include "leitura.h"
 
-/* Le as letras e transforma cada uma em um atributo do conjunto */
+/* Lê as letras e transforma cada uma em um atributo do conjunto */
 static conjunto ler_atributos(const char *texto) {
     conjunto resultado = 0;
 
     while (*texto != '\0') {
         if (*texto >= 'A' && *texto <= 'Z') {
-            resultado = resultado | atributo(*texto);
+            resultado = resultado | atributo(*texto);  // adiciona o atributo ao conjunto
         }
 
         texto++;
@@ -17,7 +17,7 @@ static conjunto ler_atributos(const char *texto) {
     return resultado;
 }
 
-/* Le as dependencias funcionais de uma linha e armazena separadamente */
+/* Lê as dfss de uma linha e armazena separadamente */
 static int ler_dependencias(char *linha, struct esquema *esquema) {
     int i = 0;
 
@@ -31,41 +31,41 @@ static int ler_dependencias(char *linha, struct esquema *esquema) {
     
     i++;
 
-    // Le cada dependencia ate encontrar }
+    // Lê cada dependência até encontrar }
     while (linha[i] != '}' && linha[i] != '\0') {
         conjunto esquerda = 0;
         conjunto direita = 0;
         int lado = 0;
 
-        // le os atributos da dependencia atual
+        // lê os atributos da df atual
          while (linha[i] != ',' && linha[i] != ';' && linha[i] != '}' && linha[i] != '\0') {
             if (linha[i] == '-') {
                 if (linha[i + 1] != '>') {
                     return 0;
                 }
 
-                lado = 1;
-                i += 2;
+                lado = 1; // a partir daqui os atributos pertencem ao lado direito
+                i += 2;   // pula os dois caracteres da seta: ->
             } else {
                 if (linha[i] >= 'A' && linha[i] <= 'Z') {
-                    if (lado == 0)
+                    if (lado == 0) // antes da seta
                         esquerda = esquerda | atributo(linha[i]);
-                    else
+                    else  // depois da seta
                         direita = direita | atributo(linha[i]);
                 } else if (linha[i] != ' ' && linha[i] != '\t' &&
                         linha[i] != '\n' && linha[i] != '\r') {
                     return 0;
                 }
 
-                i++;
+                i++;  // avança para o próximo caractere
             }
         }
 
-        // a dependencia precisa ter os dois lados
+        // Verifica se a df tem lhs, rhs e uma seta
         if (esquerda == 0 || direita == 0 || lado == 0) 
             return 0;
         
-        // aumenta o espaco para guardar mais uma dependencia
+        // Reserva espaço para uma nova df
         struct dependencia *nova_mem = realloc(esquema->dfs, (esquema->quantidade + 1) * sizeof(struct dependencia));
         if (!nova_mem)
             return 0;
@@ -87,16 +87,16 @@ static int ler_dependencias(char *linha, struct esquema *esquema) {
     return 1;
 }
 
-/* Le os atributos e as dependencias de um arquivo .fds */
+/* Lê os atributos e as dfs de um arquivo .fds */
 int ler_esquema(const char *nome_arquivo, struct esquema *esquema) {
-    FILE *arquivo = fopen(nome_arquivo, "r");
+    FILE *arquivo = fopen(nome_arquivo, "r");  // abre o arquivo em modo leitura
 
-    if (arquivo == NULL) {
+    if (arquivo == NULL) {  
         printf("Erro ao abrir o arquivo %s\n", nome_arquivo);
         return 0;
     }
 
-    char linha[1024];
+    char linha[1024];  // buffer que armazena temporariamente cada linha lida
     int encontrou_atributos = 0;
     int encontrou_dependencias = 0;
 
@@ -105,10 +105,10 @@ int ler_esquema(const char *nome_arquivo, struct esquema *esquema) {
     esquema->dfs = NULL;
     esquema->quantidade = 0;
 
-    // Le o arquivo linha por linha
+    // Lê cada linha até chegar no final do arquivo
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
 
-        // Procura a linha que comeca com U
+        // Procura a linha que começa com U
         if (linha[0] == 'U') {
             int i = 0;
 
@@ -123,7 +123,7 @@ int ler_esquema(const char *nome_arquivo, struct esquema *esquema) {
                 return 0;
             }
 
-            // Le os atributos que aparecem depois do sinal de igual
+            // Converte os atributos depois do sinal de igual em um conjunto
             esquema->atributos = ler_atributos(&linha[i + 1]);
 
             if (esquema->atributos == 0) {
@@ -135,7 +135,7 @@ int ler_esquema(const char *nome_arquivo, struct esquema *esquema) {
             encontrou_atributos = 1;
         }
 
-        // Procura a linha que comeca com F
+        // Procura a linha que começa com F
         else if (linha[0] == 'F') {
             if (!ler_dependencias(linha, esquema)) {
                 fclose(arquivo);
@@ -155,10 +155,9 @@ int ler_esquema(const char *nome_arquivo, struct esquema *esquema) {
         return 0;
     }
 
-    // Verifica se as dependencias usam apenas atributos de U
+    // Verifica se as dfs usam apenas atributos de U
     for (int i = 0; i < esquema->quantidade; i++) {
-        conjunto usados = esquema->dfs[i].esquerda |
-                          esquema->dfs[i].direita;
+        conjunto usados = esquema->dfs[i].esquerda | esquema->dfs[i].direita;  // Reúne os atributos dos dois lados da df
 
         if (!subconjunto(usados, esquema->atributos)) {
             liberar_esquema(esquema);
@@ -169,7 +168,7 @@ int ler_esquema(const char *nome_arquivo, struct esquema *esquema) {
     return 1;
 }
 
-/* Libera a memoria usada pelas dependencias */
+/* Libera a memória usada pelas dependências */
 void liberar_esquema(struct esquema *esquema) {
     free(esquema->dfs);
 

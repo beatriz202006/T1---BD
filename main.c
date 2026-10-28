@@ -20,12 +20,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-   // Verifica qual operacao foi solicitada
+   // Verifica qual operação foi solicitada
     int comando_fecho = strcmp(argv[1], "closure") == 0;
     int comando_cobertura = strcmp(argv[1], "mincover") == 0;
     int comando_chaves = strcmp(argv[1], "keys") == 0;
     int comando_formas = strcmp(argv[1], "normalform") == 0;
-
 
     if (!comando_fecho && !comando_cobertura && !comando_chaves && !comando_formas) {
         printf("Comando desconhecido: %s\n", argv[1]);
@@ -36,12 +35,10 @@ int main(int argc, char *argv[]) {
     for (int i = 2; i < argc; i++) {
 
         // Recebe o nome do arquivo
-        if (argv[i][0] == '-' && argv[i][1] == '-' &&
-            argv[i][2] == 'f' && argv[i][3] == 'd' &&
-            argv[i][4] == 's' && argv[i][5] == '\0') {
+        if (strcmp(argv[i], "--fds") == 0) {
 
             if (i + 1 < argc) {
-                nome_arquivo = argv[i + 1];
+                nome_arquivo = argv[i + 1];  // Guarda o argumento seguinte como nome do arquivo
                 encontrou_arquivo = 1;
                 i++;
             } else {
@@ -51,19 +48,18 @@ int main(int argc, char *argv[]) {
         }
 
         // Recebe os atributos de X
-        else if (argv[i][0] == '-' && argv[i][1] == '-' &&
-                 argv[i][2] == 'X' && argv[i][3] == '\0') {
+        else if (strcmp(argv[i], "--X") == 0) {
 
             if (i + 1 < argc) {
                 char *texto = argv[i + 1];
 
                 while (*texto != '\0') {
                     if (*texto < 'A' || *texto > 'Z') {
-                        printf("Atributos invalidos: use letras de A ate Z\n");
+                        printf("Atributos inválidos: use letras de A até Z\n");
                         return 1;
                     }
 
-                    x = x | atributo(*texto);
+                    x = x | atributo(*texto); // converte o atributo para sua representação em bits
                     texto++;
                 }
 
@@ -76,7 +72,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Verifica se os argumentos obrigatorios foram informados
+    // Verifica se o arquivo foi informado
     if (!encontrou_arquivo) {
         printf("Uso: ./fdtool closure --fds arquivo.fds --X A\n");
         printf("Uso: ./fdtool mincover --fds arquivo.fds\n");
@@ -85,18 +81,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // Verifica se closure recebeu --X
     if (comando_fecho && (!encontrou_x || x == 0)) {
         printf("Uso: ./fdtool closure --fds arquivo.fds --X A\n");
         return 1;
     }
 
-    // Le o esquema do arquivo
+    // Lê o esquema do arquivo
     if (!ler_esquema(nome_arquivo, &esquema)) {
         printf("Erro ao ler o arquivo.\n");
         return 1;
     }
 
-    // Executa a cobertura minima
+    // Executa a operação de cobertura mínima
     if (comando_cobertura) {
         if (!cobertura_minima(&esquema)) {
             printf("Erro ao calcular a cobertura minima.\n");
@@ -131,6 +128,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    // Busca pelas chaves candidatas
     if (comando_chaves) {
         conjunto *chaves = NULL;
         int qtde = 0;
@@ -140,7 +138,8 @@ int main(int argc, char *argv[]) {
             liberar_esquema(&esquema);
             return 1;
         }
-
+        
+        // Imprime cada chave candidata
         for (int i = 0; i < qtde; i++) {
             int primeiro = 1;
 
@@ -166,6 +165,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    // Executa a operação de verificar as formas normais
     if  (comando_formas) {
         if (!verificar_formas_normais(&esquema)) {
             liberar_esquema(&esquema);
@@ -195,8 +195,7 @@ int main(int argc, char *argv[]) {
 
     printf("\n");
 
-
-    // Libera a memoria utilizada
+    // Libera a memória utilizada
     liberar_esquema(&esquema);
 
     return 0;

@@ -2,31 +2,35 @@
 #include <stdlib.h>
 #include "fds.h"
 
-// A corresponde ao bit 0, B ao bit 1, ate Z (bit 25)
+// A corresponde ao bit 0, B ao bit 1, até Z (bit 25)
 conjunto atributo(char letra) {
+    // Verifica se o intervalo é válido
     if (letra < 'A' || letra > 'Z')
         return 0;
-    
+
+    /* Calcula qual bit corresponde a letra
+    'A' - 'A' resulta em 0, 'B' - 'A' resulta em 1 */
     return (conjunto)1 << (letra - 'A');
 }
 
+// Verifica se o conjunto A está contido no conjunto B
 int subconjunto(conjunto A, conjunto B) {
     return (A & B) == A;
 }
 
 
 /* Calcula o fecho de X percorrendo as dfs e adicionando os atributos da direita de todos os atributos 
-   que ja pertencem ao fecho atual
+   que já pertencem ao fecho atual
 */ 
 conjunto fecho(conjunto x, const struct esquema *esquema) {
     conjunto resultado = x;
-    int mudou;  // indica se algum atributo foi adicionado ao resultado
+    int mudou;  // indica se alguma iteração adicionou atributos novos
 
     // Repete enquanto encontrar novos atributos para adicionar ao fecho
     do {
         mudou = 0;
         
-        // percorre todas as dfs do esquema
+        // Percorre todas as dfs do esquema
         for (int i = 0; i < esquema->quantidade; i++) {
             conjunto esquerda = esquema->dfs[i].esquerda;
             conjunto direita = esquema->dfs[i].direita;
@@ -37,6 +41,7 @@ conjunto fecho(conjunto x, const struct esquema *esquema) {
                 // Adiciona os atributos da direita no fecho
                 conjunto novo = resultado | direita;  // combina os bits dos dois conjuntos
 
+                // Verifica se a união adicionou algum atributo novo
                 if (novo != resultado) {
                     resultado = novo;
                     mudou = 1;
